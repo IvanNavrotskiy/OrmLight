@@ -25,5 +25,19 @@ namespace OrmLight.Linq
 
             return collection.OrderBy(keySelector);
         }
+
+        public static IEnumerable<TSource> AddLimit<TSource>(this IEnumerable<TSource> collection, int count, int offset = 0)
+        {
+            var newCollection = collection.Take(count);
+            if (offset > 0)
+                newCollection.Skip(offset);
+
+            return newCollection;
+        }
+
+        public static int GetNumberOf<TSource>(this IEnumerable<TSource> collection)
+        {
+            return collection.Count();
+        }
     }
 }
