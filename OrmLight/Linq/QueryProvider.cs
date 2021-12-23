@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace OrmLight.Linq
 {
-    class QueryProvider<TEntity> : IQueryProvider
+    public class QueryProvider<TEntity> : IQueryProvider
     {
         private IDataAccessLayer _DAL;
         private Operation _Operation;
@@ -29,7 +29,23 @@ namespace OrmLight.Linq
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            return new QueryableSource<TElement>(_DAL, _Operation);
+            //_QueryVisitor.Visit(expression);
+
+            //foreach (var arg in expression.Arguments)
+            //{
+            //    Visit(arg);
+            //}
+
+            //var methodCallExpr = expression as MethodCallExpression;
+            //if (methodCallExpr != null)
+            //{
+            //    foreach (var arg in methodCallExpr.Arguments)
+            //        _QueryVisitor.Visit(arg);
+            //}
+
+            _QueryVisitor.Visit(expression);
+
+            return new QueryableSource<TElement>(_DAL, _Operation, new QueryProvider<TElement>(_DAL, _Operation, _QueryVisitor), expression);
         }
 
         public object Execute(Expression expression)
@@ -45,9 +61,9 @@ namespace OrmLight.Linq
 
         public IEnumerable<TResult> GetEnumerable<TResult>()
         {
-            var queryVisitor = new QueryVisitor((QueryInfo)_QueryVisitor.QueryInfo.Clone());
+            //var queryVisitor = new QueryVisitor((QueryInfo)_QueryVisitor.QueryInfo.Clone());
             //var results = _dataQuery(queryVisitor.QueryInfo);
-            return null;
+            return (IEnumerable<TResult>)_DAL.Execute<TResult>(_QueryVisitor.QueryInfo);
         }
     }
 }

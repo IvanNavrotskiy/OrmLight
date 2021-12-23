@@ -16,10 +16,10 @@ namespace OrmLight.Linq
         public Type ElementType => typeof(TEntity);
         public IQueryProvider Provider => _Provider;
 
-        public QueryableSource(IDataAccessLayer dal, Operation operation)
-        {
-            _Provider = new QueryProvider<TEntity>(dal, operation);
-            _Expression = Expression.Constant(this);
+        public QueryableSource(IDataAccessLayer dal, Operation operation, QueryProvider<TEntity> provider = null, Expression expr = null)
+        {            
+            _Provider = provider ?? new QueryProvider<TEntity>(dal, operation);
+            _Expression = expr ?? Expression.Constant(this);
         }
 
         //public IEnumerator<TEntity> GetEnumerator() => (_Provider.Execute<IEnumerable<TEntity>>(_Expression)).GetEnumerator();

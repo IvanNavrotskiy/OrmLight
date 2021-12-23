@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OrmLight.Linq.Visitors
 {
-    class QueryVisitor : ExpressionVisitor
+    public class QueryVisitor : ExpressionVisitor
     {
         public QueryInfo QueryInfo { get; private set; }
 
@@ -54,7 +54,8 @@ namespace OrmLight.Linq.Visitors
                     MethodCallExpression call = expr;
                     var whereExp = call.Arguments[1];
                     var whereVisitor = new WhereExpressionVisitor();
-                    whereVisitor.Visit(whereExp);
+                    whereVisitor.Visit(whereExp);                    
+
                     QueryInfo.Conditions.AddRange(whereVisitor.Conditions);
                 }
                 if (expr.Method.Name.Equals("OrderBy"))
@@ -76,6 +77,11 @@ namespace OrmLight.Linq.Visitors
                     // temp
                     QueryInfo.CountOnly = true;
                 }
+
+                //foreach (var arg in expr.Arguments)
+                //{
+                //    Visit(arg);
+                //}
             }            
 
             return expr;

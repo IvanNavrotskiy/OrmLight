@@ -22,17 +22,21 @@ namespace OrmLight.Linq.Visitors
                 _LambdaExpression = node;
                 _Parameter = ((dynamic)_LambdaExpression).Operand.Parameters[0];
             }
+
             return base.Visit(node);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var condition = new Condition();
-            var memberExpression = ((MemberExpression)node.Object);
-            condition.LeftOperand = memberExpression.Member.Name;
-            condition.Operator = Expression.Lambda(node, _Parameter);
-            condition.RightOperand = node.Arguments[0];
-            _Conditions.Add(condition);
+            var lambda = Expression.Lambda(node, _Parameter);
+
+            if (lambda.Body is BinaryExpression)
+            {
+                _Conditions.Add(CreateCondition((BinaryExpression)lambda.Body));
+            }
+
+            if (lambda.Body is MethodCallExpression)
+                _Conditions.Add(CreateCondition((MethodCallExpression)lambda.Body));            
 
             return base.VisitMethodCall(node);
         }
@@ -106,6 +110,58 @@ namespace OrmLight.Linq.Visitors
                 return constant.Value;
 
             throw new NotImplementedException();
+        }
+
+        private Condition CreateCondition(MethodCallExpression exp)
+        {
+            var methodName = exp.Method.Name;
+            var allMethods = exp.Method.DeclaringType.GetMethods();
+            var method = allMethods.Where(m => m.Name.Equals(methodName)).FirstOrDefault();
+
+            if (methodName.Equals("Equals") && method.DeclaringType.Name.Equals("String"))
+                return CreateCondition(BinaryExpression.Equal(exp.Object, exp.Arguments.FirstOrDefault()));
+
+            throw new NotImplementedException($"this call method is not suported [{exp.NodeType}]");
+        }
+
+        private Condition CreateCondition(BinaryExpression exp)
+        {
+            Condition condition = null;
+            var op = Condition.GetOperator(exp.NodeType);
+
+            switch (exp.NodeType)
+            {
+                case ExpressionType.Equal:
+                case ExpressionType.GreaterThan:
+                    {
+                        var left = (MemberExpression)exp.Left;
+                        var right = (ConstantExpression)exp.Right;
+                        condition = new Condition()
+                        {
+                            LeftOperand = left.Member.Name,
+                            Operator = op,
+                            RightOperand = right.Value
+                        };
+                        break;
+                    }
+                case ExpressionType.OrElse:
+                case ExpressionType.AndAlso:
+                    {
+                        Condition left = CreateCondition((BinaryExpression)exp.Left);
+                        Condition right = CreateCondition((BinaryExpression)exp.Right);
+                        condition = new Condition()
+                        {
+                            LeftOperand = left,
+                            Operator = op,
+                            RightOperand = right
+                        };
+                        break;
+                    }
+                default:
+                    throw new NotImplementedException($"unknown expression type [{exp.NodeType}]");
+            }
+
+            return condition;
         }
     }
 }
