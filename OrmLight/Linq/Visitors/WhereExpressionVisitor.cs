@@ -17,11 +17,22 @@ namespace OrmLight.Linq.Visitors
 
         public override Expression Visit(Expression node)
         {
-            if (_LambdaExpression == null)
+            if (_LambdaExpression == null) //Quote -> Lambda -> Call
             {
                 _LambdaExpression = node;
-                _Parameter = ((dynamic)_LambdaExpression).Operand.Parameters[0];
+                //_Parameter = ((dynamic)_LambdaExpression).Operand.Parameters[0];
+                _Parameter = ((dynamic)_LambdaExpression).Parameters[0];
             }
+
+            if (node is LambdaExpression)
+            {
+                var body = ((LambdaExpression)node).Body;
+            }
+
+            //if (node.NodeType == ExpressionType.Call)
+            //    VisitMethodCall(node as MethodCallExpression);
+
+            //VisitMethodCall(node as MethodCallExpression);
 
             return base.Visit(node);
         }
@@ -45,10 +56,15 @@ namespace OrmLight.Linq.Visitors
         {
             var operation = Condition.GetOperator(node.NodeType);
 
-            if (operation == ConditionOperator.And)
+            if (operation == ConditionOperator.Equal)
             {
-                Visit((BinaryExpression)node.Left);
-                Visit((BinaryExpression)node.Right);
+                _Conditions.Add(CreateCondition(node));
+                return node;
+            }
+            else if (operation == ConditionOperator.And)
+            {
+                Visit(node.Left);
+                Visit(node.Right);
 
                 return node;
             }

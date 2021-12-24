@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,13 +11,41 @@ namespace OrmLight.Linq
 {
     public static class LinqExtension
     {
-        public static IEnumerable<T> AddCondition<T>(this IEnumerable<T> collection, Func<T, bool> predicate)
+        private static Expression<Func<T, bool>> FuncToExpression<T>(Func<T, bool> call)
         {
-            return collection.Where(predicate);
+            MethodCallExpression methodCall = call.Target == null
+                ? Expression.Call(call.Method)
+                : Expression.Call(Expression.Constant(call.Target), call.Method);
+
+            //MethodCallExpression methodCall = Expression.Call(target, call.Method);
+
+            //Expression.Call()
+
+            return Expression.Lambda<Func<T,bool>>(methodCall);
+        }
+
+        public static IEnumerable<T> AddCondition<T>(this IEnumerable<T> collection, Expression<Func<T, bool>> predicate)
+        {
+            var method = typeof(Enumerable).GetMethods().Where(m => m.Name.Contains("Where")).FirstOrDefault().MakeGenericMethod(typeof(T)); //TODO
+            //Expression<Func<T, bool>> lambda = input => predicate(input);
+
+            //lambda.Compile();
+            ////var quote = Expression.Quote(lambda);
+
+            //var expr = Expression.Call(method, Expression.Constant(collection), lambda);
+            var expr = Expression.Call(method, Expression.Constant(collection), predicate);
+            var provider = (collection as QueryableSource<T>).Provider;
+            provider.CreateQuery(expr);
+
+            return collection;
         }
 
         public static IEnumerable<T> Execute<T>(this IEnumerable<T> collection)
         {
+            //var source = (QueryableSource<T>)collection;
+            //var claims = (source.Provider as QueryProvider<T>).Claims;
+            //claims = claims.ToList();
+
             return collection.ToList();
         }
 

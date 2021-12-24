@@ -35,7 +35,8 @@ namespace OrmLight.Linq.Visitors
 
         protected override Expression VisitMethodCall(MethodCallExpression expr)
         {
-            if ((expr.Method.DeclaringType == typeof(Queryable)) || (expr.Method.DeclaringType != typeof(Enumerable)))
+            //if ((expr.Method.DeclaringType == typeof(Queryable)) || (expr.Method.DeclaringType != typeof(Enumerable)))
+            if ((expr.Method.DeclaringType == typeof(Queryable)) || (expr.Method.DeclaringType == typeof(Enumerable)))
             {
                 if (expr.Method.Name.Equals("Skip"))
                 {
@@ -51,8 +52,8 @@ namespace OrmLight.Linq.Visitors
                 }
                 if (expr.Method.Name.Equals("Where"))
                 {
-                    MethodCallExpression call = expr;
-                    var whereExp = call.Arguments[1];
+                    //MethodCallExpression call = expr;
+                    var whereExp = expr.Arguments[1];
                     var whereVisitor = new WhereExpressionVisitor();
                     whereVisitor.Visit(whereExp);                    
 

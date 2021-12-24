@@ -15,11 +15,14 @@ namespace OrmLight.Linq
         private Operation _Operation;
         private readonly QueryVisitor _QueryVisitor;
 
+        //public IEnumerable<TEntity> Claims { get; set; }
+
         public QueryProvider(IDataAccessLayer dal, Operation operation, QueryVisitor queryVisitor = null)
         {
             _DAL = dal;
             _Operation = operation;
             _QueryVisitor = queryVisitor ?? new QueryVisitor();
+            //Claims = Enumerable.Empty<TEntity>();
         }
 
         public IQueryable CreateQuery(Expression expression)
@@ -64,6 +67,8 @@ namespace OrmLight.Linq
             //var queryVisitor = new QueryVisitor((QueryInfo)_QueryVisitor.QueryInfo.Clone());
             //var results = _dataQuery(queryVisitor.QueryInfo);
             return (IEnumerable<TResult>)_DAL.Execute<TResult>(_QueryVisitor.QueryInfo);
+            //_QueryVisitor.Visit(expression);
+            //return _DAL.Execute<TResult>(_QueryVisitor.QueryInfo.Clone() as QueryInfo);
         }
     }
 }
