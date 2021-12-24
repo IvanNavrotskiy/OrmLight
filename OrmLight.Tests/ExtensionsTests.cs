@@ -2,7 +2,7 @@
 
 namespace OrmLight.Tests
 {
-    public class Class1
+    public class ExtensionsTests
     {
     }
 }
