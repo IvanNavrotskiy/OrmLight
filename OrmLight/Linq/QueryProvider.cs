@@ -21,7 +21,7 @@ namespace OrmLight.Linq
         {
             _DAL = dal;
             _Operation = operation;
-            _QueryVisitor = queryVisitor ?? new QueryVisitor();
+            _QueryVisitor = queryVisitor ?? new QueryVisitor(operation, typeof(TEntity));
             //Claims = Enumerable.Empty<TEntity>();
         }
 

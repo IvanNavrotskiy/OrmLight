@@ -22,7 +22,6 @@ namespace OrmLight.Linq
             _Expression = expr ?? Expression.Constant(this);
         }
 
-        //public IEnumerator<TEntity> GetEnumerator() => (_Provider.Execute<IEnumerable<TEntity>>(_Expression)).GetEnumerator();
         public IEnumerator<TEntity> GetEnumerator()  => this._Provider.GetEnumerable<TEntity>().GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

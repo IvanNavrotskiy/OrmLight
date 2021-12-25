@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OrmLight.Enums;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,9 +13,10 @@ namespace OrmLight.Linq.Visitors
     {
         public QueryInfo QueryInfo { get; private set; }
 
-        public QueryVisitor(QueryInfo queryInfo = null)
+        public QueryVisitor(Operation operation, Type entityType, QueryInfo queryInfo = null)
         {
-            QueryInfo = queryInfo ?? new QueryInfo();
+            QueryInfo = queryInfo ?? new QueryInfo(operation);
+            QueryInfo.EntityType = entityType;
         }
 
         [return: NotNullIfNotNull("node")]

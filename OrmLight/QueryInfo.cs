@@ -20,8 +20,9 @@ namespace OrmLight
         //temp
         public bool CountOnly { get; set; }
 
-        public QueryInfo()
+        public QueryInfo(Operation operation)
         {
+            Operation = operation;
             Conditions = new List<Condition>();
             Sortings = new List<Sorting>();
             Limit = new Limit();
@@ -30,6 +31,8 @@ namespace OrmLight
         public object Clone()
         {
             var other = (QueryInfo)this.MemberwiseClone();
+            other.EntityType = EntityType;
+            other.Operation = Operation;
             other.Conditions = Conditions?.Select(c => c?.Clone()).Cast<Condition>().ToList();
             other.Sortings = Sortings?.Select(s => s?.Clone()).Cast<Sorting>().ToList();
             other.Limit = Limit?.Clone() as Limit;
