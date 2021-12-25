@@ -40,22 +40,23 @@ namespace OrmLight.Linq.Visitors
             {
                 if (expr.Method.Name.Equals("Skip"))
                 {
-                    Visit(expr.Arguments[0]);
+                    //Visit(expr.Arguments[0]);
                     var countExpression = (ConstantExpression)(expr.Arguments[1]);
-                    QueryInfo.Limits.Add(new Limit() { Offset = (int)countExpression.Value });
+                    QueryInfo.Limit = QueryInfo.Limit ?? new Limit();
+                    QueryInfo.Limit.Offset += (int)countExpression.Value;
                 }
                 if (expr.Method.Name.Equals("Take"))
                 {
-                    Visit(expr.Arguments[0]);
+                    //Visit(expr.Arguments[0]);
                     var countExpression = (ConstantExpression)(expr.Arguments[1]);
-                    QueryInfo.Limits.Add(new Limit() { Count = (int)countExpression.Value });
+                    QueryInfo.Limit = QueryInfo.Limit ?? new Limit();
+                    QueryInfo.Limit.Count += (int)countExpression.Value;
                 }
                 if (expr.Method.Name.Equals("Where"))
                 {
-                    //MethodCallExpression call = expr;
                     var whereExp = expr.Arguments[1];
                     var whereVisitor = new WhereExpressionVisitor();
-                    whereVisitor.Visit(whereExp);                    
+                    whereVisitor.Visit(whereExp);                                    
 
                     QueryInfo.Conditions.AddRange(whereVisitor.Conditions);
                 }
@@ -73,11 +74,11 @@ namespace OrmLight.Linq.Visitors
                     var lambdaBody = (MemberExpression)_RemoveQuotes(lambda.Body);
                     QueryInfo.Sortings.Add(new Sorting() { FieldName = lambdaBody.Member.Name, IsDesc = true });
                 }
-                if (expr.Method.Name.Equals("Count"))
-                {
-                    // temp
-                    QueryInfo.CountOnly = true;
-                }
+                //if (expr.Method.Name.Equals("Count"))
+                //{
+                //    // temp
+                //    QueryInfo.CountOnly = true;
+                //}
 
                 //foreach (var arg in expr.Arguments)
                 //{

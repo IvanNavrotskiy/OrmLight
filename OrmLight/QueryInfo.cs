@@ -15,7 +15,7 @@ namespace OrmLight
         // TODO: make private
         public List<Condition> Conditions { get; set; }
         public List<Sorting> Sortings { get; set; }
-        public List<Limit> Limits { get; set; }
+        public Limit Limit { get; set; }
 
         //temp
         public bool CountOnly { get; set; }
@@ -24,7 +24,7 @@ namespace OrmLight
         {
             Conditions = new List<Condition>();
             Sortings = new List<Sorting>();
-            Limits = new List<Limit>();
+            Limit = new Limit();
         }
 
         public object Clone()
@@ -32,7 +32,7 @@ namespace OrmLight
             var other = (QueryInfo)this.MemberwiseClone();
             other.Conditions = Conditions?.Select(c => c?.Clone()).Cast<Condition>().ToList();
             other.Sortings = Sortings?.Select(s => s?.Clone()).Cast<Sorting>().ToList();
-            other.Limits = Limits?.Select(l => l?.Clone()).Cast<Limit>().ToList();
+            other.Limit = Limit?.Clone() as Limit;
 
             return other;
         }
