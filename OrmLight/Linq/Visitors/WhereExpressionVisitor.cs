@@ -17,11 +17,18 @@ namespace OrmLight.Linq.Visitors
 
         public override Expression Visit(Expression node)
         {
-            if (_LambdaExpression == null)
-            {
-                _LambdaExpression = node;
-                _Parameter = ((dynamic)_LambdaExpression).Operand.Parameters[0];
-            }
+            //if (_LambdaExpression == null) //Quote -> Lambda -> Call
+            //{
+            //    _LambdaExpression = node;
+            //    //_Parameter = ((dynamic)_LambdaExpression).Operand.Parameters[0];
+            //    _Parameter = ((dynamic)_LambdaExpression).Parameters[0];
+            //}
+
+            //if (node is LambdaExpression)
+            //{
+            //    var body = ((LambdaExpression)node).Body;
+            //}
+
 
             return base.Visit(node);
         }
@@ -45,22 +52,28 @@ namespace OrmLight.Linq.Visitors
         {
             var operation = Condition.GetOperator(node.NodeType);
 
-            if (operation == ConditionOperator.And)
+            if (operation == ConditionOperator.Equal)
             {
-                Visit((BinaryExpression)node.Left);
-                Visit((BinaryExpression)node.Right);
+                _Conditions.Add(CreateCondition(node));
+                return node;
+            }
+            else if (operation == ConditionOperator.And)
+            {
+                Visit(node.Left);
+                Visit(node.Right);
 
                 return node;
             }
             else if (operation == ConditionOperator.Or)
             {
-                var condition = new Condition { Operator = operation };
-                var whereVisitor = new WhereExpressionVisitor();
-                whereVisitor._LambdaExpression = _LambdaExpression;
-                whereVisitor.Visit(node.Left);
-                whereVisitor.Visit(node.Right);
-                _Conditions.AddRange(whereVisitor.Conditions);
+                //var condition = new Condition { Operator = operation };
+                //var whereVisitor = new WhereExpressionVisitor();
+                //whereVisitor._LambdaExpression = _LambdaExpression;
+                //whereVisitor.Visit(node.Left);
+                //whereVisitor.Visit(node.Right);
+                //_Conditions.AddRange(whereVisitor.Conditions);
 
+                _Conditions.Add(CreateCondition(node));
                 return node;
             }
             else
@@ -119,7 +132,7 @@ namespace OrmLight.Linq.Visitors
             var method = allMethods.Where(m => m.Name.Equals(methodName)).FirstOrDefault();
 
             if (methodName.Equals("Equals") && method.DeclaringType.Name.Equals("String"))
-                return CreateCondition(BinaryExpression.Equal(exp.Object, exp.Arguments.FirstOrDefault()));
+                return CreateCondition(Expression.Equal(exp.Object, exp.Arguments.FirstOrDefault()));
 
             throw new NotImplementedException($"this call method is not suported [{exp.NodeType}]");
         }
@@ -147,8 +160,12 @@ namespace OrmLight.Linq.Visitors
                 case ExpressionType.OrElse:
                 case ExpressionType.AndAlso:
                     {
-                        Condition left = CreateCondition((BinaryExpression)exp.Left);
-                        Condition right = CreateCondition((BinaryExpression)exp.Right);
+                        MethodCallExpression leftCall = exp.Left as MethodCallExpression;
+                        Condition left = leftCall != null ? CreateCondition(leftCall) : CreateCondition((BinaryExpression)exp.Left);
+
+                        MethodCallExpression rightCall = exp.Right as MethodCallExpression;
+                        Condition right = rightCall != null ? CreateCondition(rightCall) : CreateCondition((BinaryExpression)exp.Right);
+
                         condition = new Condition()
                         {
                             LeftOperand = left,
