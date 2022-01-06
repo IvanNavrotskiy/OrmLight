@@ -39,5 +39,11 @@ namespace OrmLight.Linq
         {
             return source.ToList();
         }
+
+        // for tests
+        public static QueryInfo GetQueryInfo<T>(this IQueryable<T> source)
+        {
+            return ((source as QueryableSource<T>)?.Provider as QueryProvider<T>)?.GetQueryInfo();
+        }
     }
 }
