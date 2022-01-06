@@ -16,9 +16,6 @@ namespace OrmLight
         public List<Sorting> Sortings { get; set; }
         public Limit Limit { get; set; }
 
-        ////temp
-        //public bool CountOnly { get; set; }
-
         public QueryInfo(Operation operation)
         {
             Operation = operation;
