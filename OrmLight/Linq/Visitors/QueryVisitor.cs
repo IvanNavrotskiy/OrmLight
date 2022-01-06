@@ -28,6 +28,7 @@ namespace OrmLight.Linq.Visitors
             }
             else if (node.NodeType == ExpressionType.Constant && QueryInfo.EntityType == null)
             {
+                // define the requested type
                 var entityType = (node as ConstantExpression)?.Value.GetType().GenericTypeArguments?.FirstOrDefault();
                 QueryInfo.EntityType = entityType;
             }
@@ -37,55 +38,50 @@ namespace OrmLight.Linq.Visitors
 
         protected override Expression VisitMethodCall(MethodCallExpression expr)
         {
-            //if ((expr.Method.DeclaringType == typeof(Queryable)) || (expr.Method.DeclaringType != typeof(Enumerable)))
+            // ability to control work with interfaces here
             if ((expr.Method.DeclaringType == typeof(Queryable)) || (expr.Method.DeclaringType == typeof(Enumerable)))
             {
-                if (expr.Method.Name.Equals("Skip"))
+                switch (expr.Method.Name)
                 {
-                    //Visit(expr.Arguments[0]);
-                    var countExpression = (ConstantExpression)(expr.Arguments[1]);
-                    QueryInfo.Limit = QueryInfo.Limit ?? new Limit();
-                    QueryInfo.Limit.Offset += (int)countExpression.Value;
-                }
-                if (expr.Method.Name.Equals("Take"))
-                {
-                    //Visit(expr.Arguments[0]);
-                    var countExpression = (ConstantExpression)(expr.Arguments[1]);
-                    QueryInfo.Limit = QueryInfo.Limit ?? new Limit();
-                    QueryInfo.Limit.Count += (int)countExpression.Value;
-                }
-                if (expr.Method.Name.Equals("Where"))
-                {
-                    var whereExp = expr.Arguments[1];
-                    var whereVisitor = new WhereExpressionVisitor();
-                    whereVisitor.Visit(whereExp);                                    
+                    case "Skip":
+                        var skipCountExpression = (ConstantExpression)(expr.Arguments[1]);
+                        QueryInfo.Limit = QueryInfo.Limit ?? new Limit();
+                        QueryInfo.Limit.Offset += (int)skipCountExpression.Value;
+                        break;
+                    case "Take":
+                        var takeCountExpression = (ConstantExpression)(expr.Arguments[1]);
+                        QueryInfo.Limit = QueryInfo.Limit ?? new Limit();
+                        QueryInfo.Limit.Count += (int)takeCountExpression.Value;
+                        break;
+                    case "Where":
+                        var whereExp = expr.Arguments[1];
+                        var whereVisitor = new WhereExpressionVisitor();
+                        whereVisitor.Visit(whereExp);
+                        QueryInfo.Conditions.AddRange(whereVisitor.Conditions);
+                        break;
+                    case "OrderBy":
+                        MethodCallExpression orderByCall = expr;
+                        var orderByLambda = (LambdaExpression)_RemoveQuotes(orderByCall.Arguments[1]);
+                        var orderByLambdaBody = (MemberExpression)_RemoveQuotes(orderByLambda.Body);
+                        QueryInfo.Sortings.Add(new Sorting() 
+                        { 
+                            FieldName = orderByLambdaBody.Member.Name, IsDesc = false 
+                        });
+                        break;
+                    case "OrderByDescending":
+                        MethodCallExpression orderByDescCall = expr;
+                        var orderByDescLambda = (LambdaExpression)_RemoveQuotes(orderByDescCall.Arguments[1]);
+                        var orderByDescLambdaBody = (MemberExpression)_RemoveQuotes(orderByDescLambda.Body);
+                        QueryInfo.Sortings.Add(new Sorting() 
+                        { 
+                            FieldName = orderByDescLambdaBody.Member.Name, IsDesc = true 
+                        });
+                        break;
+                    default:
+                        throw new NotImplementedException($"this method is not suported [{expr.Method.Name}]");
 
-                    QueryInfo.Conditions.AddRange(whereVisitor.Conditions);
-                }
-                if (expr.Method.Name.Equals("OrderBy"))
-                {
-                    MethodCallExpression call = expr;
-                    var lambda = (LambdaExpression)_RemoveQuotes(call.Arguments[1]);
-                    var lambdaBody = (MemberExpression)_RemoveQuotes(lambda.Body);
-                    QueryInfo.Sortings.Add(new Sorting() { FieldName = lambdaBody.Member.Name, IsDesc = false });
-                }
-                if (expr.Method.Name.Equals("OrderByDescending"))
-                {
-                    MethodCallExpression call = expr;
-                    var lambda = (LambdaExpression)_RemoveQuotes(call.Arguments[1]);
-                    var lambdaBody = (MemberExpression)_RemoveQuotes(lambda.Body);
-                    QueryInfo.Sortings.Add(new Sorting() { FieldName = lambdaBody.Member.Name, IsDesc = true });
-                }
-                //if (expr.Method.Name.Equals("Count"))
-                //{
-                //    // temp
-                //    QueryInfo.CountOnly = true;
-                //}
 
-                //foreach (var arg in expr.Arguments)
-                //{
-                //    Visit(arg);
-                //}
+                }
             }            
 
             return expr;

@@ -12,6 +12,6 @@ namespace OrmLight.Enums
         Read,
         Update,
         Delete,
-        Count
+        Count //TODO
     }
 }
