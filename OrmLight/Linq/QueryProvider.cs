@@ -55,11 +55,7 @@ namespace OrmLight.Linq
 
         public IEnumerable<TResult> GetEnumerable<TResult>()
         {
-            //var queryVisitor = new QueryVisitor((QueryInfo)_QueryVisitor.QueryInfo.Clone());
-            //var results = _dataQuery(queryVisitor.QueryInfo);
-            return (IEnumerable<TResult>)_DAL.Execute<TResult>(_QueryVisitor.QueryInfo);
-            //_QueryVisitor.Visit(expression);
-            //return _DAL.Execute<TResult>(_QueryVisitor.QueryInfo.Clone() as QueryInfo);
+            return (IEnumerable<TResult>)_DAL.Execute<TResult>(_QueryVisitor.QueryInfo);            
         }
     }
 }

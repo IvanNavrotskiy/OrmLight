@@ -12,13 +12,12 @@ namespace OrmLight
     {
         public Operation Operation { get; set; }
         public Type EntityType { get; set; }
-        // TODO: make private
         public List<Condition> Conditions { get; set; }
         public List<Sorting> Sortings { get; set; }
         public Limit Limit { get; set; }
 
-        //temp
-        public bool CountOnly { get; set; }
+        ////temp
+        //public bool CountOnly { get; set; }
 
         public QueryInfo(Operation operation)
         {

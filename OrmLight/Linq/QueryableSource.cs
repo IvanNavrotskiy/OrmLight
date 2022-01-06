@@ -9,7 +9,6 @@ namespace OrmLight.Linq
 {
     public class QueryableSource<TEntity> : IOrderedQueryable<TEntity>
     {
-        //private readonly Expression _Expression;
         private readonly QueryProvider<TEntity> _Provider;
 
         public Expression Expression { get; private set; }

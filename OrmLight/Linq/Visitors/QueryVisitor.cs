@@ -54,10 +54,13 @@ namespace OrmLight.Linq.Visitors
                         QueryInfo.Limit.Count += (int)takeCountExpression.Value;
                         break;
                     case "Where":
-                        var whereExp = expr.Arguments[1];
-                        var whereVisitor = new WhereExpressionVisitor();
-                        whereVisitor.Visit(whereExp);
-                        QueryInfo.Conditions.AddRange(whereVisitor.Conditions);
+                        if (expr.Arguments.Count > 1)
+                        {
+                            var whereExp = expr.Arguments[1];
+                            var whereVisitor = new WhereExpressionVisitor();
+                            whereVisitor.Visit(whereExp);
+                            QueryInfo.Conditions.AddRange(whereVisitor.Conditions);
+                        }
                         break;
                     case "OrderBy":
                         MethodCallExpression orderByCall = expr;
@@ -77,10 +80,12 @@ namespace OrmLight.Linq.Visitors
                             FieldName = orderByDescLambdaBody.Member.Name, IsDesc = true 
                         });
                         break;
+                    case "Count":
+                        // TODO: to think about perform predicate in default linq
+                        QueryInfo.Operation = Operation.Count;
+                        break;
                     default:
                         throw new NotImplementedException($"this method is not suported [{expr.Method.Name}]");
-
-
                 }
             }            
 

@@ -40,6 +40,11 @@ namespace OrmLight.Linq
             return source.ToList();
         }
 
+        public static int GetCountOf<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate = null)
+        {
+            return predicate == null ? source.Count() : source.Where(predicate).Count();
+        }
+
         // for tests
         public static QueryInfo GetQueryInfo<T>(this IQueryable<T> source)
         {
