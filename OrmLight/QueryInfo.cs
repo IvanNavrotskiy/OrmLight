@@ -8,17 +8,13 @@ using System.Threading.Tasks;
 
 namespace OrmLight
 {
-    public class QueryInfo : ICloneable
+    public class QueryInfo
     {
         public Operation Operation { get; set; }
         public Type EntityType { get; set; }
-        // TODO: make private
         public List<Condition> Conditions { get; set; }
         public List<Sorting> Sortings { get; set; }
         public Limit Limit { get; set; }
-
-        //temp
-        public bool CountOnly { get; set; }
 
         public QueryInfo(Operation operation)
         {
@@ -27,47 +23,14 @@ namespace OrmLight
             Sortings = new List<Sorting>();
             Limit = new Limit();
         }
-
-        public object Clone()
-        {
-            var other = (QueryInfo)this.MemberwiseClone();
-            other.EntityType = EntityType;
-            other.Operation = Operation;
-            other.Conditions = Conditions?.Select(c => c?.Clone()).Cast<Condition>().ToList();
-            other.Sortings = Sortings?.Select(s => s?.Clone()).Cast<Sorting>().ToList();
-            other.Limit = Limit?.Clone() as Limit;
-
-            return other;
-        }
     }
 
-    public class Condition : ICloneable
+    public class Condition
     {
         public object LeftOperand { get; set; }
         public ConditionOperator Operator { get; set; }
         public object RightOperand { get; set; }
         public static Condition Equal => new Condition() { Operator = ConditionOperator.Equal };
-
-        public object Clone()
-        {
-            var other = (Condition)this.MemberwiseClone();
-
-            var leftCondition = LeftOperand as Condition;
-            if (leftCondition != null)
-                other.LeftOperand = leftCondition.Clone();
-            else
-                other.LeftOperand = LeftOperand;
-
-            var rightCondition = RightOperand as Condition;
-            if (rightCondition != null)
-                other.RightOperand = rightCondition.Clone();
-            else
-                other.RightOperand = RightOperand;
-
-            other.Operator = Operator;
-
-            return other;
-        }
 
         public static ConditionOperator GetOperator(ExpressionType type)
         {
@@ -90,25 +53,15 @@ namespace OrmLight
         }
     }
 
-    public class Sorting : ICloneable
+    public class Sorting
     {
         public string FieldName { get; set; }
         public bool IsDesc { get; set; }
-
-        public object Clone()
-        {
-            return this.MemberwiseClone();
-        }
     }
 
-    public class Limit : ICloneable
+    public class Limit
     {
         public int Count { get; set; }
         public int Offset { get; set; }
-
-        public object Clone()
-        {
-            return this.MemberwiseClone();
-        }
     }
 }
